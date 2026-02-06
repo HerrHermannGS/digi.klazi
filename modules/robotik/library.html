@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch Jr. Block-Bibliothek</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .rounded-canva {
+            border-radius: 2rem;
+        }
+
+        .shadow-canva {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .category-yellow {
+            background-color: #FFF9C4;
+            border-left-color: #FBC02D;
+        }
+
+        .category-blue {
+            background-color: #E3F2FD;
+            border-left-color: #1976D2;
+        }
+
+        .category-purple {
+            background-color: #F3E5F5;
+            border-left-color: #8E24AA;
+        }
+
+        .category-green {
+            background-color: #E8F5E9;
+            border-left-color: #388E3C;
+        }
+
+        .category-orange {
+            background-color: #FFF3E0;
+            border-left-color: #F57C00;
+        }
+    </style>
+</head>
+
+<body class="bg-[#FAF9F6] font-sans text-gray-800">
+    <div class="min-h-screen pb-20 animate-fadeIn">
+        <!-- Header -->
+        <header class="bg-[#FAF9F6] pt-16 pb-12 px-6 border-b-8 border-[#E8EDE9]">
+            <div class="max-w-4xl mx-auto text-center space-y-4">
+                <h1 class="text-4xl md:text-6xl font-bold text-black leading-tight">
+                    📚 Die wichtigsten <span class="text-[#6F8F72]">Scratch Jr. Blöcke</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto">
+                    Dein Spickzettel für die ersten Programme!
+                </p>
+                <a href="index.html"
+                    class="inline-block mt-4 px-6 py-3 bg-white border-4 border-black rounded-xl font-bold hover:bg-gray-100 transition">
+                    ← Zurück zu den Aufgaben
+                </a>
+            </div>
+        </header>
+
+        <!-- Block Categories -->
+        <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+            <!-- 1. Triggering Blocks (Yellow) -->
+            <section class="bg-white rounded-canva shadow-canva p-8 space-y-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-yellow-400 rounded-2xl flex items-center justify-center text-3xl">🚩</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-black">Auslöser-Blöcke</h2>
+                        <p class="text-gray-600">Gelb – Starten dein Programm</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl border-l-8 category-yellow flex items-start gap-4">
+                        <img src="../../assets/blocks/onflag.png" alt="Start Flag"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Start bei grüner Flagge</h3>
+                            <p class="text-gray-700">Startet das Programm, wenn die grüne Flagge angetippt wird.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-yellow flex items-start gap-4">
+                        <img src="../../assets/blocks/ontap.png" alt="On Tap"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Start bei Antippen</h3>
+                            <p class="text-gray-700">Startet, wenn du die Figur antippst.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Motion Blocks (Blue) -->
+            <section class="bg-white rounded-canva shadow-canva p-8 space-y-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-blue-400 rounded-2xl flex items-center justify-center text-3xl">➡️</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-black">Bewegungs-Blöcke</h2>
+                        <p class="text-gray-600">Blau – Bewegen deine Figuren</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl border-l-8 category-blue flex items-start gap-4">
+                        <img src="../../assets/blocks/right.png" alt="Right"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Nach rechts bewegen</h3>
+                            <p class="text-gray-700">Bewegt die Figur eine bestimmte Anzahl Felder nach rechts.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-blue flex items-start gap-4">
+                        <img src="../../assets/blocks/left.png" alt="Left"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Nach links bewegen</h3>
+                            <p class="text-gray-700">Bewegt die Figur eine bestimmte Anzahl Felder nach links.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-blue flex items-start gap-4">
+                        <img src="../../assets/blocks/up.png" alt="Up" class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Nach oben bewegen</h3>
+                            <p class="text-gray-700">Bewegt die Figur eine bestimmte Anzahl Felder nach oben.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-blue flex items-start gap-4">
+                        <img src="../../assets/blocks/hop.png" alt="Hop" class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Hüpfen</h3>
+                            <p class="text-gray-700">Lässt die Figur hochspringen und wieder landen.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Looks Blocks (Purple) -->
+            <section class="bg-white rounded-canva shadow-canva p-8 space-y-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-purple-400 rounded-2xl flex items-center justify-center text-3xl">👁️</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-black">Aussehen-Blöcke</h2>
+                        <p class="text-gray-600">Pink/Lila – Verändern das Aussehen</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl border-l-8 category-purple flex items-start gap-4">
+                        <img src="../../assets/blocks/hide.png" alt="Hide"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Verbergen</h3>
+                            <p class="text-gray-700">Lässt die Figur langsam unsichtbar werden.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-purple flex items-start gap-4">
+                        <img src="../../assets/blocks/show.png" alt="Show"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Zeigen</h3>
+                            <p class="text-gray-700">Lässt die Figur langsam wieder sichtbar werden.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Sound Blocks (Green) -->
+            <section class="bg-white rounded-canva shadow-canva p-8 space-y-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-green-400 rounded-2xl flex items-center justify-center text-3xl">🔊</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-black">Ton-Blöcke</h2>
+                        <p class="text-gray-600">Grün – Spielen Geräusche ab</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl border-l-8 category-green flex items-start gap-4">
+                        <img src="../../assets/blocks/playsound.png" alt="Play Sound"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Ton abspielen</h3>
+                            <p class="text-gray-700">Spielt einen von dir aufgenommenen Ton ab.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Control Blocks (Orange) -->
+            <section class="bg-white rounded-canva shadow-canva p-8 space-y-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-orange-400 rounded-2xl flex items-center justify-center text-3xl">⚙️</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-black">Kontroll-Blöcke</h2>
+                        <p class="text-gray-600">Orange – Steuern den Ablauf</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl border-l-8 category-orange flex items-start gap-4">
+                        <img src="../../assets/blocks/wait.png" alt="Wait"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Warten</h3>
+                            <p class="text-gray-700">Pausiert das Programm für eine bestimmte Zeit.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-orange flex items-start gap-4">
+                        <img src="../../assets/blocks/repeat.png" alt="Repeat"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Wiederholen</h3>
+                            <p class="text-gray-700">Führt die Blöcke darin mehrmals aus (Schleife).</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-xl border-l-8 category-orange flex items-start gap-4">
+                        <img src="../../assets/blocks/stop.png" alt="Stop"
+                            class="w-16 h-16 object-contain flex-shrink-0">
+                        <div>
+                            <h3 class="font-bold text-lg">Stopp</h3>
+                            <p class="text-gray-700">Stoppt alle Programme der Figur.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="max-w-4xl mx-auto px-6 py-12 text-center">
+            <div class="bg-[#6F8F72]/10 p-6 rounded-2xl border-2 border-dashed border-[#6F8F72]/30">
+                <p class="text-lg text-gray-700 mb-3 font-semibold">💡 Bereit zum Programmieren?</p>
+                <a href="https://www.scratchjr.org/#download" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-[#6F8F72] text-white rounded-xl font-bold hover:bg-[#5A7A5D] transition shadow-lg">
+                    📱 Scratch Jr. App herunterladen
+                </a>
+            </div>
+        </footer>
+    </div>
+</body>
+
+</html>

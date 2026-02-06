@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(file:*)",
+      "Bash(find:*)",
+      "Bash(du -sh:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_136-10.svg\" \"https://upload.wikimedia.org/wikipedia/commons/7/70/Zeichen_136-10_-_Kinder%2C_Aufstellung_rechts%2C_StVO_1992.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_138-10.svg\" \"https://upload.wikimedia.org/wikipedia/commons/a/ae/Zeichen_138-10_-_Radverkehr%2C_StVO_2013.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_215.svg\" \"https://upload.wikimedia.org/wikipedia/commons/7/72/Zeichen_215_-_Kreisverkehr%2C_StVO_2000.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_220-10.svg\" \"https://upload.wikimedia.org/wikipedia/commons/7/70/Zeichen_220-10_-_Einbahnstra%C3%9Fe%2C_linksweisend%2C_StVO_2017.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_314.svg\" \"https://upload.wikimedia.org/wikipedia/commons/e/e9/Zeichen_314_-_Parkplatz%2C_StVO_1970.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ curl -s -A \"FahrradSimulation/1.0\" -o \"Zeichen_350-10.svg\" \"https://upload.wikimedia.org/wikipedia/commons/6/60/Zeichen_350-10_-_Fu%C3%9Fg%C3%A4nger%C3%BCberweg_%28rechts%29%2C_StVO_1992.svg\")",
+      "Bash(__NEW_LINE_26cc0f445c89af8b__ echo \"\")",
+      "Bash(ls:*)"
+    ]
+  }
+}

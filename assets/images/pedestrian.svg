@@ -1,0 +1,8 @@
+<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Body/Shoulders -->
+  <ellipse cx="20" cy="20" rx="14" ry="8" fill="#3b82f6" />
+  <!-- Head -->
+  <circle cx="20" cy="20" r="7" fill="#fca5a5" stroke="#000" stroke-width="0.5" stroke-opacity="0.2"/>
+  <!-- Hair -->
+  <path d="M 13 20 Q 20 10 27 20" fill="none" stroke="#4b5563" stroke-width="3" stroke-linecap="round"/>
+</svg>
