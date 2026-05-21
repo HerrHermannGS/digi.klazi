@@ -80,34 +80,37 @@ body { font-family: 'Outfit', system-ui, sans-serif; background: #f8fafc; color:
 const slides = [
   {
     img: 'slides/slide-1.jpg',
+    audio: 'audio/slide-1.mp3',
     speech: 'Stell dir vor, du baust dir eine eigene Maschine. Wie würdest du ihr sagen, was sie tun soll? Heute machen wir eine Reise. Wir gehen von den ersten Zahnrädern bis zu Robotern, die selbst rechnen können. Bist du bereit?'
   },
   {
     img: 'slides/slide-2.jpg',
+    audio: 'audio/slide-2.mp3',
     speech: 'Ein Roboter weiß nicht von allein, was er tun soll. Er braucht einen Plan. Genau wie ein Rezept beim Backen. Mehl plus Wasser ergibt Teig. Bei der Maschine heißt dieser Plan Algorithmus. Eingabe, Regel, Ausgabe. Maschinen wissen nichts von allein. Wir müssen es ihnen beibringen.'
   },
   {
     img: 'slides/slide-3.jpg',
+    audio: 'audio/slide-3.mp3',
     speech: 'Probier etwas Lustiges. Stell dir vor, du steuerst einen Menschen mit verbundenen Augen. Sagst du nur "Putz die Zähne", versteht er gar nichts. Du musst jeden Schritt genau erklären. Hebe die Bürste zehn Zentimeter hoch. Bewege die Hand fünfzehn Zentimeter nach links. Schließe die Finger. Genauso denkt ein Roboter.'
   },
   {
     img: 'slides/slide-4.jpg',
+    audio: 'audio/slide-4.mp3',
     speech: 'Vor über zweihundert Jahren bauten Uhrmacher Maschinen aus Federn und Zahnrädern. Eine berühmte Ente aus Kupfer konnte sogar Wasser trinken und Körner picken. Sie sah fast lebendig aus. Aber sie dachte nicht. Sie folgte einfach den Zahnrädern in ihrem Bauch.'
   },
   {
-    img: 'slides/slide-5.jpg',
-    speech: 'Vor etwa siebzig Jahren kam ein riesiger Metallarm in die Fabrik. Sein Name war Unimate. Er hob glühend heiße Metallteile aus der Form und stapelte sie. Tag und Nacht ohne Pause. Er fühlte keine Hitze und wurde nie müde. Bis heute bauen solche Arme unsere Autos.'
-  },
-  {
     img: 'slides/slide-6.jpg',
+    audio: 'audio/slide-6.mp3',
     speech: 'Heute brauchen wir keine Zahnräder mehr. Wir nutzen drei coole Werkzeuge. Erst legen wir Pfeile aus Papier auf den Boden und laufen die Strecke selbst ab. Dann liest eine kleine Schnecke Farben und fährt los. Und am Tablet bauen wir bunte Blöcke wie Puzzleteile zusammen. So denkt eine Maschine heute.'
   },
   {
     img: 'slides/slide-7.jpg',
+    audio: 'audio/slide-7.mp3',
     speech: 'Jedes gute Programm braucht drei Bausteine. Erstens ein Start-Signal, zum Beispiel eine grüne Flagge. Zweitens einen Akteur, also den Roboter oder die Figur. Und drittens eine logische Aktion. Beispiel: Wenn ich die Flagge klicke, bewegt sich der Roboter zwei Schritte nach vorn. Mehr nicht, weniger nicht.'
   },
   {
     img: 'slides/slide-8.jpg',
+    audio: 'audio/slide-8.mp3',
     speech: 'Ob der Roboter den Boden saugt oder als Rover auf dem Mars fährt: Eines bleibt immer gleich. Jede Maschine ist nur so klug wie der Mensch, der ihren Plan geschrieben hat. Und das wirst du jetzt lernen. Du bist nicht mehr nur Zuschauer. Du wirst zum Gestalter.'
   }
 ];
@@ -117,8 +120,9 @@ const player = document.getElementById('player');
 let audioAvailable = false;
 
 function checkAudio() {
-  // Optional: check ob audio/slide-N.mp3 existiert. Wenn ja, Button anzeigen.
-  fetch(`audio/slide-${current+1}.mp3`, {method: 'HEAD'}).then(r => {
+  const path = slides[current].audio;
+  if (!path) { document.getElementById('audioBtn').style.display = 'none'; audioAvailable = false; return; }
+  fetch(path, {method: 'HEAD'}).then(r => {
     if (r.ok) { document.getElementById('audioBtn').style.display = 'inline-flex'; audioAvailable = true; }
     else { document.getElementById('audioBtn').style.display = 'none'; audioAvailable = false; }
   }).catch(() => { document.getElementById('audioBtn').style.display = 'none'; });
@@ -154,7 +158,7 @@ function prev() { if (current > 0) { current--; render(); } }
 function toggleAudio() {
   const btn = document.getElementById('audioBtn');
   if (player.paused) {
-    player.src = `audio/slide-${current+1}.mp3`;
+    player.src = slides[current].audio;
     player.play().then(() => {
       btn.classList.add('playing');
       btn.innerHTML = '⏸️ Pause';
