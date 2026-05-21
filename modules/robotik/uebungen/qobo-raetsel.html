@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qobo-Programmier-Rätsel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+body { font-family: 'Outfit', sans-serif; }
+.grid-cell { aspect-ratio: 1; }
+#snail-s2, #snail-s3, #snail-s4 { transition: all 0.5s ease-in-out; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen py-6 px-4 md:px-8">
+<div class="max-w-4xl mx-auto">
+
+<header class="bg-gradient-to-r from-violet-600 to-purple-700 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-violet-100 mb-6 text-center relative overflow-hidden">
+<div class="absolute -top-10 -left-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+<div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+<span class="bg-violet-500/30 text-violet-100 text-xs md:text-sm font-semibold uppercase tracking-wider px-3 py-1 rounded-full border border-violet-400/30">🐌 Programmier-Rätsel</span>
+<h1 class="text-3xl md:text-4xl font-extrabold mt-3 tracking-tight">Drei Qobo-Herausforderungen</h1>
+<p class="text-violet-100 mt-2 text-sm md:text-base max-w-xl mx-auto">Plane voraus, finde Fehler und entdecke den besten Weg. So denkt ein Informatiker.</p>
+</header>
+
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-violet-100 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<span class="text-2xl">🏆</span>
+<div>
+<h3 class="font-bold text-slate-800">Dein Forscher-Fortschritt</h3>
+<p class="text-xs text-slate-500">Löse alle drei Rätsel, um Robotik-Meister zu werden.</p>
+</div>
+</div>
+<div class="flex items-center gap-4 w-full md:w-auto flex-1 max-w-xs md:max-w-md justify-end">
+<div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200"><div id="overall-progress" class="bg-violet-600 h-full w-0 transition-all duration-500"></div></div>
+<span id="progress-text" class="font-bold text-violet-600 whitespace-nowrap text-sm">0 von 3 gelöst</span>
+</div>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-6 justify-center">
+<button onclick="switchTab('tab-gap')" id="nav-tab-gap" class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm bg-violet-600 text-white">🧩 1. Finde die Lücke</button>
+<button onclick="switchTab('tab-debug')" id="nav-tab-debug" class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm bg-white text-slate-600 border border-slate-200 hover:border-violet-300 hover:bg-violet-50/50">🔍 2. Fehler-Suche</button>
+<button onclick="switchTab('tab-opt')" id="nav-tab-opt" class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm bg-white text-slate-600 border border-slate-200 hover:border-violet-300 hover:bg-violet-50/50">⚡ 3. Bester Weg</button>
+</div>
+<main class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 min-h-[450px]">
+<section id="tab-gap" class="tab-content block">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<div class="md:col-span-6 bg-slate-100 rounded-2xl p-4 border border-slate-200">
+<h3 class="text-sm font-bold text-slate-700 mb-3 text-center">🗺️ Qobos Weltkarten-Pfad</h3>
+<div class="grid grid-cols-5 gap-1.5 relative" id="map-s2"></div>
+<div class="mt-3 flex justify-between text-xs text-slate-500 px-1 font-medium"><span>Start unten links</span><span>Rubin oben rechts</span></div>
+</div>
+<div class="md:col-span-6">
+<h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-2">Herausforderung: Finde die Lücke</h2>
+<p class="text-sm text-slate-600 mb-6">Qobo will den Rubin auf der Chinesischen Mauer erreichen. Der Programmierplan ist fertig, aber ein Befehl fehlt.</p>
+<div class="bg-violet-50/50 rounded-2xl p-4 border border-violet-100 mb-6">
+<h4 class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">Der fehlerhafte Plan</h4>
+<div class="flex items-center gap-2 overflow-x-auto pb-2">
+<div class="flex-none bg-violet-100 border border-violet-200 text-violet-800 px-3 py-2 rounded-xl text-xs font-semibold flex flex-col items-center gap-1"><span>Schritt 1</span><span class="text-base">⬆️</span><span>Vorwärts</span></div>
+<div class="text-slate-400">➡️</div>
+<div class="flex-none bg-violet-100 border border-violet-200 text-violet-800 px-3 py-2 rounded-xl text-xs font-semibold flex flex-col items-center gap-1"><span>Schritt 2</span><span class="text-base">↩️</span><span>Links drehen</span></div>
+<div class="text-slate-400">➡️</div>
+<div id="missing-slot" class="flex-none bg-amber-100 border-2 border-dashed border-amber-400 text-amber-900 px-4 py-2 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 min-w-[75px] h-[58px]"><span>Schritt 3</span><span class="text-lg text-amber-500">❓</span></div>
+<div class="text-slate-400">➡️</div>
+<div class="flex-none bg-violet-100 border border-violet-200 text-violet-800 px-3 py-2 rounded-xl text-xs font-semibold flex flex-col items-center gap-1"><span>Schritt 4</span><span class="text-base">↪️</span><span>Rechts drehen</span></div>
+<div class="text-slate-400">➡️</div>
+<div class="flex-none bg-violet-100 border border-violet-200 text-violet-800 px-3 py-2 rounded-xl text-xs font-semibold flex flex-col items-center gap-1"><span>Schritt 5</span><span class="text-base">⬆️</span><span>Vorwärts</span></div>
+</div>
+</div>
+<div>
+<h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Welche Karte schließt die Lücke?</h4>
+<div class="grid grid-cols-2 gap-3">
+<button onclick="selectGapOption('links', '↩️ Links drehen')" class="gap-opt-btn bg-white border-2 border-slate-200 hover:border-violet-300 p-3 rounded-2xl transition-all shadow-sm flex flex-col items-center gap-1"><span class="text-2xl">↩️</span><span class="text-xs font-bold">Links drehen</span></button>
+<button onclick="selectGapOption('vorwaerts', '⬆️ Vorwärts')" class="gap-opt-btn bg-white border-2 border-slate-200 hover:border-violet-300 p-3 rounded-2xl transition-all shadow-sm flex flex-col items-center gap-1"><span class="text-2xl">⬆️</span><span class="text-xs font-bold">Vorwärts</span></button>
+<button onclick="selectGapOption('rechts', '↪️ Rechts drehen')" class="gap-opt-btn bg-white border-2 border-slate-200 hover:border-violet-300 p-3 rounded-2xl transition-all shadow-sm flex flex-col items-center gap-1"><span class="text-2xl">↪️</span><span class="text-xs font-bold">Rechts drehen</span></button>
+<button onclick="selectGapOption('tanz', '✨ Schnecken-Tanz')" class="gap-opt-btn bg-white border-2 border-slate-200 hover:border-violet-300 p-3 rounded-2xl transition-all shadow-sm flex flex-col items-center gap-1"><span class="text-2xl">✨</span><span class="text-xs font-bold">Tanz machen</span></button>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button onclick="testStation2()" class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-violet-100">Lösung prüfen 🏁</button>
+</div>
+</div>
+</div>
+</section>
+
+<section id="tab-debug" class="tab-content hidden">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<div class="md:col-span-6 bg-slate-100 rounded-2xl p-4 border border-slate-200">
+<h3 class="text-sm font-bold text-slate-700 mb-2 text-center">🧭 Vorsicht vor dem Wasser</h3>
+<div class="grid grid-cols-4 gap-2 relative" id="map-s3"></div>
+<div class="mt-3 flex justify-between text-xs text-slate-500 font-medium"><span>Start unten links</span><span class="text-rose-600 font-bold">🚨 Hindernis: See</span></div>
+</div>
+<div class="md:col-span-6">
+<h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-2">Roboter-Fehler finden (Debugging)</h2>
+<p class="text-sm text-slate-600 mb-4">Zwei Schüler-Teams haben Pläne abgegeben. Einer hat einen Fehler (Bug) und steuert die Schnecke in den See. Welcher Plan stimmt?</p>
+<div class="space-y-4">
+<div onclick="selectPlan('A')" id="plan-card-A" class="border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all">
+<div class="flex items-center justify-between mb-3"><span class="font-bold text-slate-800">Plan A (Leo & Mia)</span><span class="bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">5 Schritte</span></div>
+<div class="flex items-center gap-1 text-sm bg-slate-50 p-2.5 rounded-xl border border-slate-100 overflow-x-auto"><span>⬆️</span> <span class="text-xs text-slate-500 mr-1">Vwd</span> ➡️ <span>↪️</span> <span class="text-xs text-slate-500 mr-1">Rechts</span> ➡️ <span>⬆️</span> <span class="text-xs text-slate-500 mr-1">Vwd</span> ➡️ <span>↩️</span> <span class="text-xs text-slate-500 mr-1">Links</span> ➡️ <span>⬆️</span> <span class="text-xs text-slate-500">Vwd</span></div>
+</div>
+<div onclick="selectPlan('B')" id="plan-card-B" class="border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all">
+<div class="flex items-center justify-between mb-3"><span class="font-bold text-slate-800">Plan B (Ida & Jonas)</span><span class="bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">5 Schritte</span></div>
+<div class="flex items-center gap-1 text-sm bg-slate-50 p-2.5 rounded-xl border border-slate-100 overflow-x-auto"><span>⬆️</span> <span class="text-xs text-slate-500 mr-1">Vwd</span> ➡️ <span>⬆️</span> <span class="text-xs text-slate-500 mr-1">Vwd</span> ➡️ <span>↪️</span> <span class="text-xs text-slate-500 mr-1">Rechts</span> ➡️ <span>⬆️</span> <span class="text-xs text-slate-500 mr-1">Vwd</span> ➡️ <span>⬆️</span> <span class="text-xs text-slate-500">Vwd</span></div>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button onclick="testSelectedPlan()" class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-violet-100">Plan testen ▶️</button>
+</div>
+</div>
+</div>
+</section>
+
+<section id="tab-opt" class="tab-content hidden">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<div class="md:col-span-6 bg-slate-100 rounded-2xl p-4 border border-slate-200">
+<h3 class="text-sm font-bold text-slate-700 mb-2 text-center">🔋 Energie sparen: die kürzeste Route</h3>
+<div class="grid grid-cols-5 gap-2 relative" id="map-s4"></div>
+<div class="mt-3 flex justify-between text-xs text-slate-500 font-medium"><span>Start unten links</span><span>Ziel: Schatz oben rechts</span></div>
+</div>
+<div class="md:col-span-6">
+<h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-2">Den besten Weg programmieren</h2>
+<p class="text-sm text-slate-600 mb-4">Ein guter Informatiker plant nicht irgendeinen Weg, sondern den <strong>effizientesten</strong>. Das spart der Schnecke Akku und Zeit.</p>
+<div class="bg-amber-50 rounded-2xl p-4 border border-amber-100 mb-4 text-xs text-amber-800">⚡ <strong>Info:</strong> Jeder Vorwärts-Schritt kostet 10 Prozent Akku, jede Drehung 5 Prozent. Welcher Plan ist sparsamer?</div>
+<div class="space-y-3">
+<div onclick="selectRoute('A')" id="route-card-A" class="border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all">
+<div class="flex items-center justify-between mb-2"><span class="font-bold text-slate-800 text-sm">Plan Gelb: der Zick-Zack-Pfad</span><span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded-full">Langer Weg</span></div>
+<p class="text-xs text-slate-500 mb-2">Macht viele kleine Abbiegungen.</p>
+<div class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center gap-1 overflow-x-auto text-slate-600"><span>⬆️</span> ➡️ <span>↪️</span> ➡️ <span>⬆️</span> ➡️ <span>↩️</span> ➡️ <span>⬆️</span> ➡️ <span>↪️</span> ➡️ <span>⬆️</span></div>
+</div>
+<div onclick="selectRoute('B')" id="route-card-B" class="border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all">
+<div class="flex items-center justify-between mb-2"><span class="font-bold text-slate-800 text-sm">Plan Violett: die Außenkurve</span><span class="bg-violet-100 text-violet-800 text-xs font-semibold px-2 py-0.5 rounded-full">Direkter</span></div>
+<p class="text-xs text-slate-500 mb-2">Fährt ganz außen herum, deutlich weniger Befehle.</p>
+<div class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center gap-1 overflow-x-auto text-slate-600"><span>⬆️</span> ➡️ <span>⬆️</span> ➡️ <span>⬆️</span> ➡️ <span>↪️</span> ➡️ <span>⬆️</span> ➡️ <span>⬆️</span></div>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button onclick="testSelectedRoute()" class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-violet-100">Route losschicken 🏁</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<div id="custom-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+<div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center">
+<div id="modal-icon" class="text-5xl mb-3">🎉</div>
+<h3 id="modal-title" class="text-xl font-bold text-slate-800 mb-2">Großartig!</h3>
+<p id="modal-message" class="text-sm text-slate-600 mb-6">Du hast dieses Rätsel fehlerfrei gelöst!</p>
+<button onclick="closeModal()" class="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-violet-100">Weiter geht's!</button>
+</div>
+</div>
+
+<script>
+let completedStations = {2: false, 3: false, 4: false};
+let s2SelectedOption = null;
+let s3SelectedPlan = null;
+let s4SelectedRoute = null;
+
+function showModal(title, msg, icon) {
+  if (!icon) icon = "🎉";
+  document.getElementById('modal-title').innerText = title;
+  document.getElementById('modal-message').innerText = msg;
+  document.getElementById('modal-icon').innerText = icon;
+  document.getElementById('custom-modal').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('custom-modal').classList.add('hidden');
+}
+function triggerConfetti() {
+  if (typeof confetti === 'function') confetti({particleCount: 100, spread: 70, origin: {y: 0.6}});
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
+  document.getElementById(tabId).classList.add('block');
+  document.getElementById(tabId).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.className = "tab-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm bg-white text-slate-600 border border-slate-200 hover:border-violet-300 hover:bg-violet-50/50";
+  });
+  document.getElementById('nav-' + tabId).className = "tab-btn px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm bg-violet-600 text-white";
+}
+function updateProgress() {
+  let done = 0;
+  for (let k in completedStations) if (completedStations[k]) done++;
+  document.getElementById('overall-progress').style.width = (done / 3 * 100) + '%';
+  document.getElementById('progress-text').innerText = done + ' von 3 gelöst';
+  if (done === 3) {
+    setTimeout(() => { triggerConfetti(); showModal('Ausgezeichnet', 'Du hast alle drei Programmier-Rätsel gemeistert. Du bist Robotik-Meister!', '🎓'); }, 600);
+  }
+}
+
+function initS2Map() {
+  const container = document.getElementById('map-s2');
+  container.innerHTML = '';
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell border border-slate-200/60 bg-white rounded-lg flex items-center justify-center text-sm relative overflow-hidden';
+    cell.id = 's2-cell-' + x + '-' + y;
+    if (x === 0 && y === 4) { cell.classList.add('bg-violet-50'); cell.innerHTML = '<span class="text-xs font-bold text-violet-500 absolute top-1 left-1">Start</span>'; }
+    else if (x === 2 && y === 1) { cell.classList.add('bg-amber-50'); cell.innerHTML = '<span class="text-lg">💎</span><span class="text-[9px] font-bold text-amber-600 absolute bottom-0.5 right-1">Mauer</span>'; }
+    if ((x === 0 && y === 4) || (x === 1 && y === 4) || (x === 1 && y === 3) || (x === 1 && y === 2) || (x === 2 && y === 2) || (x === 2 && y === 1)) {
+      const d = document.createElement('div'); d.className = 'w-2.5 h-2.5 bg-violet-300/40 rounded-full z-0 absolute'; cell.appendChild(d);
+    }
+    container.appendChild(cell);
+  }
+  const snail = document.createElement('div');
+  snail.id = 'snail-s2';
+  snail.className = 'absolute z-10 w-8 h-8 flex items-center justify-center text-xl pointer-events-none';
+  snail.innerHTML = '🐌';
+  document.getElementById('s2-cell-0-4').appendChild(snail);
+}
+function selectGapOption(optKey, displayLabel) {
+  s2SelectedOption = optKey;
+  document.querySelectorAll('.gap-opt-btn').forEach(btn => btn.classList.remove('border-violet-500', 'bg-violet-50/50'));
+  event.currentTarget.classList.add('border-violet-500', 'bg-violet-50/50');
+  const slot = document.getElementById('missing-slot');
+  slot.classList.remove('border-amber-400', 'bg-amber-100', 'text-amber-900');
+  slot.classList.add('border-emerald-400', 'bg-emerald-50', 'text-emerald-900');
+  slot.innerHTML = '<span>Schritt 3</span><span class="font-bold text-xs text-emerald-600">' + displayLabel + '</span>';
+}
+function testStation2() {
+  if (!s2SelectedOption) { showModal('Tipp', 'Wähle erst eine der vier Befehlskarten aus.', '❓'); return; }
+  const snail = document.getElementById('snail-s2');
+  const startCell = document.getElementById('s2-cell-0-4');
+  startCell.appendChild(snail);
+  setTimeout(() => {
+    document.getElementById('s2-cell-1-4').appendChild(snail);
+    setTimeout(() => {
+      setTimeout(() => {
+        if (s2SelectedOption === 'vorwaerts') {
+          document.getElementById('s2-cell-1-3').appendChild(snail);
+          setTimeout(() => {
+            document.getElementById('s2-cell-1-2').appendChild(snail);
+            setTimeout(() => {
+              document.getElementById('s2-cell-2-2').appendChild(snail);
+              setTimeout(() => {
+                document.getElementById('s2-cell-2-1').appendChild(snail);
+                setTimeout(() => {
+                  completedStations[2] = true; updateProgress(); triggerConfetti();
+                  showModal('Mauer erreicht', 'Mit dem Vorwärts-Befehl fährt Qobo den richtigen Weg und schnappt sich den Rubin auf der Mauer.', '🏆');
+                }, 400);
+              }, 500);
+            }, 500);
+          }, 500);
+        } else {
+          if (s2SelectedOption === 'links') showModal('Falscher Abzweig', 'Mit Links drehen weicht Qobo vom Pfad ab. Schau dir den Weg noch einmal an.', '🧭');
+          else if (s2SelectedOption === 'rechts') showModal('Falscher Abzweig', 'Rechts drehen führt Qobo in die falsche Richtung.', '🧭');
+          else if (s2SelectedOption === 'tanz') showModal('Tanzzeit', 'Ein Tanz macht Spaß, bringt Qobo aber nicht näher ans Ziel. Welcher Bewegungsbefehl fehlt?', '✨');
+          setTimeout(() => startCell.appendChild(snail), 1200);
+        }
+      }, 500);
+    }, 500);
+  }, 500);
+}
+
+function initS3Map() {
+  const container = document.getElementById('map-s3');
+  container.innerHTML = '';
+  for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell border border-slate-200/80 bg-white rounded-lg flex items-center justify-center text-sm relative overflow-hidden';
+    cell.id = 's3-cell-' + x + '-' + y;
+    if (x === 0 && y === 3) { cell.classList.add('bg-violet-50'); cell.innerHTML = '<span class="text-[9px] font-bold text-violet-500 absolute top-1 left-1">Start</span>'; }
+    else if (x === 2 && y === 0) { cell.classList.add('bg-amber-50'); cell.innerHTML = '<span class="text-xl">🎁</span><span class="text-[9px] font-bold text-amber-600 absolute bottom-0.5 right-1">Ziel</span>'; }
+    else if ((x === 1 && y === 2) || (x === 1 && y === 1)) { cell.classList.add('bg-blue-200'); cell.innerHTML = '<span class="text-lg">🌊</span>'; }
+    container.appendChild(cell);
+  }
+  const snail = document.createElement('div');
+  snail.id = 'snail-s3';
+  snail.className = 'absolute z-10 w-8 h-8 flex items-center justify-center text-xl pointer-events-none';
+  snail.innerHTML = '🐌';
+  document.getElementById('s3-cell-0-3').appendChild(snail);
+}
+function selectPlan(planKey) {
+  s3SelectedPlan = planKey;
+  document.getElementById('plan-card-A').className = "border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all";
+  document.getElementById('plan-card-B').className = "border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all";
+  document.getElementById('plan-card-' + planKey).className = "border-2 border-violet-500 rounded-2xl p-4 cursor-pointer bg-violet-50/20 transition-all shadow-sm";
+}
+function testSelectedPlan() {
+  if (!s3SelectedPlan) { showModal('Tipp', 'Wähle erst einen der beiden Pläne.', '❓'); return; }
+  const snail = document.getElementById('snail-s3');
+  const startCell = document.getElementById('s3-cell-0-3');
+  startCell.appendChild(snail);
+  if (s3SelectedPlan === 'A') {
+    setTimeout(() => {
+      document.getElementById('s3-cell-0-2').appendChild(snail);
+      setTimeout(() => {
+        document.getElementById('s3-cell-1-2').appendChild(snail);
+        setTimeout(() => {
+          showModal('Platsch', 'Plan A steuert Qobo direkt in den See. Das war der Bug. Probiere den anderen Plan.', '🌊');
+          setTimeout(() => startCell.appendChild(snail), 1000);
+        }, 400);
+      }, 500);
+    }, 500);
+  } else {
+    setTimeout(() => {
+      document.getElementById('s3-cell-0-2').appendChild(snail);
+      setTimeout(() => {
+        document.getElementById('s3-cell-0-1').appendChild(snail);
+        setTimeout(() => {
+          document.getElementById('s3-cell-0-0').appendChild(snail);
+          setTimeout(() => {
+            document.getElementById('s3-cell-1-0').appendChild(snail);
+            setTimeout(() => {
+              document.getElementById('s3-cell-2-0').appendChild(snail);
+              completedStations[3] = true; updateProgress(); triggerConfetti();
+              showModal('Rätsel gelöst', 'Plan B weicht dem See aus und führt Qobo trocken ans Ziel. Du hast den Bug gefunden.', '🔍');
+            }, 500);
+          }, 500);
+        }, 500);
+      }, 500);
+    }, 500);
+  }
+}
+
+function initS4Map() {
+  const container = document.getElementById('map-s4');
+  container.innerHTML = '';
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell border border-slate-200/60 bg-white rounded-lg flex items-center justify-center text-sm relative overflow-hidden';
+    cell.id = 's4-cell-' + x + '-' + y;
+    if (x === 0 && y === 4) { cell.classList.add('bg-violet-50'); cell.innerHTML = '<span class="text-[9px] font-bold text-violet-500 absolute top-1 left-1">Start</span>'; }
+    else if (x === 4 && y === 1) { cell.classList.add('bg-amber-50'); cell.innerHTML = '<span class="text-xl">🎁</span>'; }
+    else if ((x === 2 && y === 3) || (x === 2 && y === 2) || (x === 2 && y === 1)) { cell.classList.add('bg-slate-200'); cell.innerHTML = '<span class="text-lg">🧱</span>'; }
+    container.appendChild(cell);
+  }
+  const snail = document.createElement('div');
+  snail.id = 'snail-s4';
+  snail.className = 'absolute z-10 w-8 h-8 flex items-center justify-center text-xl pointer-events-none';
+  snail.innerHTML = '🐌';
+  document.getElementById('s4-cell-0-4').appendChild(snail);
+}
+function selectRoute(routeKey) {
+  s4SelectedRoute = routeKey;
+  document.getElementById('route-card-A').className = "border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all";
+  document.getElementById('route-card-B').className = "border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-violet-300 bg-white transition-all";
+  document.getElementById('route-card-' + routeKey).className = "border-2 border-violet-500 rounded-2xl p-4 cursor-pointer bg-violet-50/20 transition-all shadow-sm";
+}
+function testSelectedRoute() {
+  if (!s4SelectedRoute) { showModal('Tipp', 'Wähle erst eine der beiden Routen.', '❓'); return; }
+  const snail = document.getElementById('snail-s4');
+  const startCell = document.getElementById('s4-cell-0-4');
+  startCell.appendChild(snail);
+  const stepsA = ['s4-cell-0-3','s4-cell-1-3','s4-cell-1-2','s4-cell-1-1','s4-cell-1-0','s4-cell-2-0','s4-cell-3-0','s4-cell-4-0','s4-cell-4-1'];
+  const stepsB = ['s4-cell-0-3','s4-cell-0-2','s4-cell-0-1','s4-cell-1-1','s4-cell-2-1','s4-cell-3-1','s4-cell-4-1'];
+  const seq = s4SelectedRoute === 'A' ? stepsA : stepsB;
+  let i = 0;
+  function step() {
+    if (i >= seq.length) {
+      if (s4SelectedRoute === 'A') {
+        showModal('Akku fast leer', 'Du bist am Ziel, aber der Zick-Zack-Weg hat viel Akku gekostet. Der andere Weg ist kürzer.', '⚠️');
+      } else {
+        completedStations[4] = true; updateProgress(); triggerConfetti();
+        showModal('Perfekt optimiert', 'Plan Violett nutzt die Außenlinie und kommt mit weniger Schritten aus. Das spart Energie.', '⚡');
+      }
+      return;
+    }
+    document.getElementById(seq[i]).appendChild(snail);
+    i++;
+    setTimeout(step, 400);
+  }
+  step();
+}
+
+window.onload = function() {
+  initS2Map();
+  initS3Map();
+  initS4Map();
+  updateProgress();
+};
+</script>
+
+</div>
+</body>
+</html>
