@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐌 Qobo Wegplaner – Interaktive Übung</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cream: #FFF8E1;
+            --bg-cream-dark: #FFF0C0;
+            --cyan: #7DD3E8;
+            --cyan-light: #B5E8F3;
+            --cyan-dark: #5BB8CE;
+            --orange: #F5993D;
+            --orange-dark: #E0852A;
+            --orange-light: #FBBF6A;
+            --red: #EF4444;
+            --text-dark: #2D2D2D;
+            --text-mid: #5A5A5A;
+            --text-light: #8A8A8A;
+            --white: #FFFFFF;
+            --border: #E8DFC0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Fredoka', sans-serif; 
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .header { width: 100%; max-width: 480px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .header-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--orange), var(--orange-dark)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(245,153,61,0.3); }
+        .header-text h1 { font-size: 20px; font-weight: 700; line-height: 1.1; }
+        .header-text p { font-size: 11px; color: var(--text-light); font-weight: 500; }
+
+        .level-bar { width: 100%; max-width: 480px; display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+        .level-pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 2px solid var(--border); background: var(--white); color: var(--text-mid); cursor: pointer; transition: all 0.2s; font-family: 'Fredoka', sans-serif; }
+        .level-pill.current { background: var(--orange); color: var(--white); border-color: var(--orange); box-shadow: 0 3px 10px rgba(245,153,61,0.35); }
+        .level-pill.completed { background: var(--orange-light); color: var(--orange-dark); border-color: var(--orange-light); }
+        .level-pill.locked { opacity: 0.35; pointer-events: none; }
+
+        .task-box { width: 100%; max-width: 480px; background: var(--cyan); border-radius: 16px; padding: 14px 18px; margin-bottom: 14px; border: 2px solid var(--cyan-dark); }
+        .task-box h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .task-box p { font-size: 14px; line-height: 1.4; }
+
+        .grid-wrapper { width: 100%; max-width: 360px; background: var(--white); padding: 10px; border-radius: 20px; border: 3px solid var(--border); margin-bottom: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .cell { aspect-ratio: 1; background: var(--bg-cream); border-radius: 10px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; position: relative; transition: background-color 0.3s, border-color 0.3s; }
+        .cell.visited { background: var(--cyan-light) !important; border-color: var(--cyan) !important; }
+        .cell.visited::after { content: ''; position: absolute; inset: 30%; border-radius: 50%; background: var(--cyan); opacity: 0.3; }
+        .cell.target-cell { background: #FFF3CD; border-color: var(--orange-light); }
+        .cell.obstacle-cell { background: #FEE2E2; border-color: #FECACA; }
+        .snail { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px; z-index: 10; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .dir-arrow { position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 700; color: var(--orange); z-index: 11; }
+        @keyframes sparkle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+        .sparkle { animation: sparkle 2s ease-in-out infinite; }
+
+        .queue-label { width: 100%; max-width: 480px; display: flex; gap: 6px; margin-bottom: 6px; padding: 0 4px; }
+        .queue-label span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); }
+        .queue-label .count { color: var(--orange); }
+        .command-queue { width: 100%; max-width: 480px; min-height: 56px; background: var(--white); border: 2px dashed var(--border); border-radius: 16px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .empty-hint { font-size: 13px; color: var(--text-light); width: 100%; text-align: center; }
+        .chip { width: 40px; height: 40px; background: var(--white); border: 2px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; cursor: pointer; transition: all 0.2s; }
+        .chip .idx { position: absolute; top: -5px; left: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--orange); color: var(--white); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .chip .del { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: var(--white); font-size: 9px; font-weight: 700; display: none; align-items: center; justify-content: center; cursor: pointer; }
+        .chip:hover .del, .chip:active .del { display: flex; }
+        .chip.active-cmd { border-color: var(--orange) !important; box-shadow: 0 0 0 3px rgba(245,153,61,0.25); transform: scale(1.1); }
+        .chip.error-cmd { border-color: var(--red) !important; background: #FEF2F2 !important; animation: shake 0.4s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .pop-in { animation: pop-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        .palette { width: 100%; max-width: 480px; display: flex; justify-content: center; gap: 12px; margin-bottom: 14px; }
+        .cmd-btn { width: 72px; padding: 10px 0; background: var(--white); border: 2px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.15s; box-shadow: 0 3px 8px rgba(0,0,0,0.04); font-family: 'Fredoka', sans-serif; }
+        .cmd-btn:active { transform: scale(0.9); }
+        .cmd-btn:hover { border-color: var(--orange-light); }
+        .cmd-btn .emoji { font-size: 28px; }
+        .cmd-btn .label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-light); }
+
+        .actions { width: 100%; max-width: 480px; display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-clear { flex: 1; padding: 14px 0; background: var(--white); border: 2px solid var(--border); border-radius: 16px; font-family: 'Fredoka', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: pointer; }
+        .btn-clear:active { transform: scale(0.95); }
+        .btn-play { flex: 2; padding: 14px 0; background: linear-gradient(135deg, var(--orange), var(--orange-dark)); border: none; border-radius: 16px; font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); cursor: pointer; box-shadow: 0 4px 14px rgba(245,153,61,0.35); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-play:active { transform: scale(0.95); }
+        .btn-play.disabled { opacity: 0.5; pointer-events: none; }
+
+        .footer { width: 100%; max-width: 480px; text-align: center; font-size: 10px; color: var(--text-light); padding: 8px 0; }
+        .footer a { color: var(--orange); text-decoration: none; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(45,45,45,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 100; opacity: 0; transition: opacity 0.3s; }
+        .modal-bg.show { opacity: 1; }
+        .modal-card { background: var(--white); border-radius: 28px; padding: 32px 28px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); transform: scale(0.9) translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-bg.show .modal-card { transform: scale(1) translateY(0); }
+        .modal-icon { font-size: 56px; margin-bottom: 8px; }
+        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .modal-text { font-size: 14px; color: var(--text-mid); margin-bottom: 4px; }
+        .modal-hint { font-size: 13px; color: var(--orange); font-weight: 600; margin-bottom: 20px; }
+        .modal-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--orange), var(--orange-dark)); border: none; border-radius: 16px; font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); cursor: pointer; box-shadow: 0 4px 14px rgba(245,153,61,0.3); }
+        .modal-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon">🐌</div>
+        <div class="header-text">
+            <h1>Qobo Wegplaner</h1>
+            <p>Interaktive Übung – Plane den Weg zum Rubin!</p>
+        </div>
+    </div>
+
+    <div class="level-bar" id="level-bar"></div>
+
+    <div class="task-box">
+        <h3>Aufgabe</h3>
+        <p id="task-text"></p>
+    </div>
+
+    <div class="grid-wrapper">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="queue-label">
+        <span>Dein Programm</span>
+        <span class="count" id="cmd-counter"></span>
+    </div>
+    <div class="command-queue" id="command-queue">
+        <span class="empty-hint" id="empty-hint">Tippe auf die Befehle unten ⬇️</span>
+    </div>
+
+    <div class="palette">
+        <button class="cmd-btn" onclick="addCommand('forward')"><span class="emoji">⬆️</span><span class="label">Vor</span></button>
+        <button class="cmd-btn" onclick="addCommand('left')"><span class="emoji">↩️</span><span class="label">Links</span></button>
+        <button class="cmd-btn" onclick="addCommand('right')"><span class="emoji">↪️</span><span class="label">Rechts</span></button>
+    </div>
+
+    <div class="actions">
+        <button class="btn-clear" onclick="clearCommands()">🗑️ Löschen</button>
+        <button class="btn-play" id="play-btn" onclick="runProgram()">▶️ Abspielen</button>
+    </div>
+
+    <div class="footer">Robotik-AG · GS Kissing · <a href="#">Zurück zur Station</a></div>
+
+    <div class="modal-bg" id="modal">
+        <div class="modal-card">
+            <div class="modal-icon" id="modal-icon">🎉</div>
+            <div class="modal-title" id="modal-title">Super!</div>
+            <div class="modal-text" id="modal-text"></div>
+            <div class="modal-hint" id="modal-hint"></div>
+            <button class="modal-btn" id="modal-btn">Weiter</button>
+        </div>
+    </div>
+
+    <script>
+    const DIRS = [
+        { dr:-1, dc:0, label:'↑' },
+        { dr:0,  dc:1, label:'→' },
+        { dr:1,  dc:0, label:'↓' },
+        { dr:0,  dc:-1,label:'←' }
+    ];
+
+    const LEVELS = [
+        { title:"Geradeaus", task:"Die Schnecke schaut nach oben. Steuere sie geradeaus zum Rubin!", start:[4,2], target:[1,2], startDir:0, obstacles:[], optimal:3 },
+        { title:"Um die Ecke", task:"Jetzt musst du auch abbiegen! Denk daran: Erst drehen, dann vorwärts.", start:[4,0], target:[4,4], startDir:1, obstacles:[[4,2]], optimal:7 },
+        { title:"Zickzack", task:"Finde den Weg durch die Hindernisse. Plane sorgfältig!", start:[4,0], target:[0,4], startDir:0, obstacles:[[3,1],[2,2],[1,3]], optimal:12 },
+        { title:"Labyrinth", task:"Der schwerste Parcours! Kannst du den kürzesten Weg finden?", start:[4,0], target:[0,4], startDir:0, obstacles:[[3,0],[3,1],[2,2],[2,3],[1,1],[0,2]], optimal:14 }
+    ];
+
+    let currentLevel = 0, unlockedLevel = 0, commands = [], isRunning = false;
+    let snail = { r:0, c:0, dir:0 };
+    const ICONS = { forward:'⬆️', left:'↩️', right:'↪️' };
+
+    function init() { buildGrid(); renderPills(); loadLevel(0); }
+
+    function buildGrid() {
+        const g = document.getElementById('grid'); g.innerHTML = '';
+        for (let r=0; r<5; r++) for (let c=0; c<5; c++) {
+            const d = document.createElement('div'); d.className='cell'; d.id=`c-${r}-${c}`; g.appendChild(d);
+        }
+    }
+
+    function renderPills() {
+        const bar = document.getElementById('level-bar'); bar.innerHTML = '';
+        LEVELS.forEach((l,i) => {
+            const p = document.createElement('button');
+            p.className = 'level-pill' + (i===currentLevel?' current':'') + (i<unlockedLevel?' completed':'') + (i>unlockedLevel?' locked':'');
+            p.textContent = `Level ${i+1}`;
+            if (i<=unlockedLevel) p.onclick = () => { currentLevel=i; commands=[]; loadLevel(i); updateUI(); renderPills(); };
+            bar.appendChild(p);
+        });
+    }
+
+    function loadLevel(idx) {
+        const l = LEVELS[idx];
+        document.getElementById('task-text').textContent = l.task;
+        for (let r=0;r<5;r++) for (let c=0;c<5;c++) { const cl=document.getElementById(`c-${r}-${c}`); cl.innerHTML=''; cl.className='cell'; }
+        const t=document.getElementById(`c-${l.target[0]}-${l.target[1]}`); t.innerHTML='<span class="sparkle">💎</span>'; t.classList.add('target-cell');
+        l.obstacles.forEach(([r,c])=>{ const o=document.getElementById(`c-${r}-${c}`); o.innerHTML='🚧'; o.classList.add('obstacle-cell'); });
+        snail = { r:l.start[0], c:l.start[1], dir:l.startDir }; renderSnail();
+    }
+
+    function renderSnail() {
+        ['snail','dir-arrow'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); });
+        const cell = document.getElementById(`c-${snail.r}-${snail.c}`); if(!cell) return;
+        const s=document.createElement('div'); s.id='snail'; s.className='snail'; s.textContent='🐌'; cell.appendChild(s);
+        const a=document.createElement('div'); a.id='dir-arrow'; a.className='dir-arrow'; a.textContent=DIRS[snail.dir].label; cell.appendChild(a);
+    }
+
+    function addCommand(t) { if(isRunning) return; commands.push(t); updateUI(); }
+    function removeCommand(i) { if(isRunning) return; commands.splice(i,1); updateUI(); }
+    function clearCommands() { if(isRunning) return; commands=[]; updateUI(); loadLevel(currentLevel); }
+
+    function updateUI() {
+        const q=document.getElementById('command-queue'), h=document.getElementById('empty-hint'), cnt=document.getElementById('cmd-counter');
+        q.querySelectorAll('.chip').forEach(c=>c.remove());
+        if(!commands.length) { h.style.display='block'; cnt.textContent=''; return; }
+        h.style.display='none'; cnt.textContent=`(${commands.length} Befehle)`;
+        commands.forEach((cmd,i)=>{
+            const ch=document.createElement('div'); ch.className='chip pop-in'; ch.id=`cmd-${i}`;
+            ch.innerHTML=`<span class="idx">${i+1}</span>${ICONS[cmd]}<span class="del" onclick="event.stopPropagation();removeCommand(${i})">×</span>`;
+            q.appendChild(ch);
+        });
+    }
+
+    async function runProgram() {
+        if(isRunning||!commands.length) return;
+        isRunning=true; loadLevel(currentLevel);
+        document.getElementById('play-btn').classList.add('disabled');
+        for(let i=0; i<commands.length; i++) {
+            hlCmd(i,'active');
+            if(!execStep(commands[i])) { hlCmd(i,'error'); await sleep(300); showModal(false,i); endRun(); return; }
+            renderSnail(); await sleep(500); hlCmd(i,'done');
+        }
+        const l=LEVELS[currentLevel];
+        showModal(snail.r===l.target[0]&&snail.c===l.target[1], snail.r===l.target[0]&&snail.c===l.target[1]?-1:-1);
+        if(!(snail.r===l.target[0]&&snail.c===l.target[1])) showModal(false,-1);
+        else showModal(true);
+        endRun();
+    }
+
+    function execStep(t) {
+        if(t==='left') { snail.dir=(snail.dir+3)%4; return true; }
+        if(t==='right') { snail.dir=(snail.dir+1)%4; return true; }
+        if(t==='forward') {
+            document.getElementById(`c-${snail.r}-${snail.c}`)?.classList.add('visited');
+            const d=DIRS[snail.dir], nr=snail.r+d.dr, nc=snail.c+d.dc;
+            if(nr<0||nr>4||nc<0||nc>4) return false;
+            if(LEVELS[currentLevel].obstacles.some(([r,c])=>r===nr&&c===nc)) return false;
+            snail.r=nr; snail.c=nc; return true;
+        }
+        return false;
+    }
+
+    function hlCmd(i,s) { const ch=document.getElementById(`cmd-${i}`); if(!ch) return; ch.classList.remove('active-cmd','error-cmd'); if(s==='active') ch.classList.add('active-cmd'); if(s==='error') ch.classList.add('error-cmd'); }
+    function endRun() { isRunning=false; document.getElementById('play-btn').classList.remove('disabled'); }
+
+    function showModal(success, errIdx=-1) {
+        const m=document.getElementById('modal'), ic=document.getElementById('modal-icon'), ti=document.getElementById('modal-title'),
+              tx=document.getElementById('modal-text'), hi=document.getElementById('modal-hint'), bt=document.getElementById('modal-btn');
+        m.style.display='flex'; requestAnimationFrame(()=>requestAnimationFrame(()=>m.classList.add('show')));
+        if(success) {
+            confetti({particleCount:120,spread:80,origin:{y:0.7},colors:['#F5993D','#FBBF6A','#7DD3E8','#FFD700']});
+            const l=LEVELS[currentLevel]; ic.textContent='🎉'; ti.textContent='Geschafft!';
+            tx.textContent=`Du hast ${commands.length} Befehle gebraucht.`;
+            hi.textContent = commands.length<=l.optimal ? '⭐ Perfekt! Das war der kürzeste Weg!' : `💡 Tipp: Es geht auch in ${l.optimal} Befehlen!`;
+            if(currentLevel+1>unlockedLevel && currentLevel<LEVELS.length-1) unlockedLevel=currentLevel+1;
+            if(currentLevel<LEVELS.length-1) { bt.textContent='➡️ Nächstes Level'; bt.onclick=()=>{ closeModal(); currentLevel++; commands=[]; loadLevel(currentLevel); updateUI(); renderPills(); }; }
+            else { bt.textContent='🏆 Alle Level geschafft!'; bt.onclick=()=>{ closeModal(); confetti({particleCount:200,spread:100,origin:{y:0.5}}); }; }
+        } else {
+            ic.textContent='🤔';
+            if(errIdx>=0) { ti.textContent='Hier geht\'s nicht weiter!'; tx.textContent=`Befehl Nr. ${errIdx+1} funktioniert nicht.`; hi.textContent='Schau dir an, wohin die Schnecke schaut!'; }
+            else { ti.textContent='Noch nicht am Ziel'; tx.textContent='Die Schnecke hat den Rubin nicht erreicht.'; hi.textContent='Du brauchst noch mehr Befehle!'; }
+            bt.textContent='🔄 Nochmal versuchen'; bt.onclick=()=>{ closeModal(); loadLevel(currentLevel); };
+        }
+    }
+
+    function closeModal() { const m=document.getElementById('modal'); m.classList.remove('show'); setTimeout(()=>m.style.display='none',300); }
+    function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+    init();
+    </script>
+</body>
+</html>

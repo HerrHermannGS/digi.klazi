@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐌 Qobo Wegplaner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Fredoka', sans-serif; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        
+        .grid-cell { 
+            aspect-ratio: 1 / 1; 
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+        .grid-cell.visited { background-color: #ede9fe !important; }
+        .grid-cell.visited::after {
+            content: '';
+            position: absolute;
+            inset: 30%;
+            border-radius: 50%;
+            background: #c4b5fd;
+            opacity: 0.5;
+        }
+        
+        .snail-sprite {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+            font-size: 1.8rem;
+        }
+        
+        /* Direction indicator arrow under snail */
+        .dir-arrow {
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            opacity: 0.7;
+            z-index: 11;
+        }
+        
+        .command-card { 
+            cursor: pointer; 
+            transition: transform 0.15s, box-shadow 0.15s; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .command-card:active { transform: scale(0.88); }
+        
+        .cmd-chip {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .cmd-chip.active-cmd {
+            border-color: #7c3aed !important;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+            transform: scale(1.1);
+        }
+        .cmd-chip.error-cmd {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+            animation: shake 0.4s ease;
+        }
+        .cmd-chip .cmd-index {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .cmd-chip .remove-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .cmd-chip:hover .remove-btn,
+        .cmd-chip:active .remove-btn { display: flex; }
+        
+        .pulse-error { animation: pulse-red 0.6s ease 3; }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.3); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in { animation: pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        /* Target sparkle */
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .sparkle { animation: sparkle 2s ease-in-out infinite; }
+        
+        /* Obstacle wobble */
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+        .obstacle-cell:hover .obstacle-emoji { animation: wobble 0.5s ease; }
+        
+        /* Step mode indicator */
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            transition: all 0.3s;
+        }
+        .step-dot.done { background: #7c3aed; }
+        .step-dot.current { background: #7c3aed; transform: scale(1.4); }
+        
+        /* Level selector pills */
+        .level-pill {
+            transition: all 0.2s;
+        }
+        .level-pill.locked { opacity: 0.4; pointer-events: none; }
+        .level-pill.current { 
+            background: #7c3aed; 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        .level-pill.completed {
+            background: #d8b4fe;
+            color: #581c87;
+        }
+        
+        /* Modal */
+        .modal-backdrop {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-backdrop.show { opacity: 1; }
+        .modal-card {
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-backdrop.show .modal-card {
+            transform: scale(1) translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-violet-50 to-slate-50 min-h-screen flex flex-col items-center px-4 py-6 select-none">
+
+    <!-- Header -->
+    <header class="w-full max-w-lg flex justify-between items-center mb-5">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-violet-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-violet-200">
+                <span class="text-2xl">🐌</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-slate-800 leading-tight">Qobo Wegplaner</h1>
+                <p class="text-xs text-slate-400 font-medium">Plane den Weg zum Rubin!</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Level Selector -->
+    <div class="w-full max-w-lg flex gap-2 mb-4 justify-center" id="level-pills">
+        <!-- Generated by JS -->
+    </div>
+
+    <!-- Task Description -->
+    <div id="task-box" class="w-full max-w-lg bg-white/80 backdrop-blur px-4 py-3 rounded-2xl border border-violet-100 mb-4 text-center">
+        <p id="task-text" class="text-sm text-slate-600 font-medium"></p>
+    </div>
+
+    <!-- Main Game Area -->
+    <main class="w-full max-w-sm bg-white p-3 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 mb-5">
+        <div id="grid" class="grid grid-cols-5 gap-1.5 bg-slate-50 p-2 rounded-xl"></div>
+    </main>
+
+    <!-- Command Queue -->
+    <div class="w-full max-w-lg mb-4">
+        <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Dein Programm</span>
+            <span id="cmd-counter" class="text-xs text-violet-500 font-bold"></span>
+        </div>
+        <div class="bg-white/70 backdrop-blur p-3 rounded-2xl min-h-[64px] flex flex-wrap gap-2 items-center border-2 border-dashed border-slate-200" id="command-queue">
+            <p id="empty-hint" class="text-slate-300 text-sm w-full text-center">Tippe auf die Befehle unten ⬇️</p>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="w-full max-w-lg flex justify-center gap-3 mb-5">
+        <button onclick="addCommand('forward')" class="command-card bg-white p-3 rounded-2xl shadow-md border-2 border-slate-100 hover:border-violet-300 flex flex-col items-center gap-1 w-[72px]">
+            <span class="text-3xl">⬆️</span>
+            <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wide">Vor</span>
+        </button>
+        <button onclick="addCommand('left')" class="command-card bg-white p-3 rounded-2xl shadow-md border-2 border-slate-100 hover:border-violet-300 flex flex-col items-center gap-1 w-[72px]">
+            <span class="text-3xl">↩️</span>
+            <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wide">Links</span>
+        </button>
+        <button onclick="addCommand('right')" class="command-card bg-white p-3 rounded-2xl shadow-md border-2 border-slate-100 hover:border-violet-300 flex flex-col items-center gap-1 w-[72px]">
+            <span class="text-3xl">↪️</span>
+            <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wide">Rechts</span>
+        </button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="w-full max-w-lg flex gap-3 mb-8">
+        <button onclick="clearCommands()" class="flex-1 py-3.5 bg-white text-slate-500 font-bold rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-all text-sm">
+            🗑️ Löschen
+        </button>
+        <button id="play-btn" onclick="runProgram()" class="flex-[2] py-3.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-300/40 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm">
+            ▶️ Abspielen
+        </button>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50 modal-backdrop">
+        <div class="modal-card bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl">
+            <div id="modal-icon" class="text-6xl mb-3">🎉</div>
+            <h2 id="modal-title" class="text-2xl font-bold text-slate-800 mb-2">Super!</h2>
+            <p id="modal-text" class="text-slate-500 mb-2 text-sm"></p>
+            <p id="modal-hint" class="text-violet-500 font-medium text-sm mb-6"></p>
+            <button id="modal-btn" class="w-full py-4 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all">
+                Weiter
+            </button>
+        </div>
+    </div>
+
+    <script>
+    // ── CONFIG ──────────────────────────────────────────
+    const DIRS = [
+        { dr: -1, dc: 0, label: '↑', deg: 0 },   // 0 = Nord
+        { dr: 0,  dc: 1, label: '→', deg: 90 },   // 1 = Ost
+        { dr: 1,  dc: 0, label: '↓', deg: 180 },  // 2 = Süd
+        { dr: 0,  dc: -1, label: '←', deg: 270 }   // 3 = West
+    ];
+
+    const LEVELS = [
+        {
+            title: "Geradeaus",
+            task: "Die Schnecke schaut nach oben. Steuere sie geradeaus zum Rubin!",
+            start: [4, 2], target: [1, 2], startDir: 0,
+            obstacles: [],
+            optimal: 3
+        },
+        {
+            title: "Um die Ecke",
+            task: "Jetzt musst du auch abbiegen! Denk daran: Erst drehen, dann vorwärts.",
+            start: [4, 0], target: [4, 4], startDir: 1,
+            obstacles: [[4, 2]],
+            optimal: 7
+        },
+        {
+            title: "Zickzack",
+            task: "Finde den Weg durch die Hindernisse. Plane sorgfältig!",
+            start: [4, 0], target: [0, 4], startDir: 0,
+            obstacles: [[3, 1], [2, 2], [1, 3]],
+            optimal: 12
+        },
+        {
+            title: "Labyrinth",
+            task: "Der schwerste Parcours! Kannst du den kürzesten Weg finden?",
+            start: [4, 0], target: [0, 4], startDir: 0,
+            obstacles: [[3, 0], [3, 1], [2, 2], [2, 3], [1, 1], [0, 2]],
+            optimal: 14
+        }
+    ];
+
+    // ── STATE ───────────────────────────────────────────
+    let currentLevel = 0;
+    let unlockedLevel = 0;
+    let commands = [];
+    let isRunning = false;
+    let snail = { r: 0, c: 0, dir: 0 };
+
+    // ── INIT ────────────────────────────────────────────
+    function init() {
+        buildGrid();
+        renderLevelPills();
+        loadLevel(0);
+    }
+
+    function buildGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell bg-white rounded-xl border border-slate-100 flex items-center justify-center text-2xl';
+                cell.id = `cell-${r}-${c}`;
+                grid.appendChild(cell);
+            }
+        }
+    }
+
+    function renderLevelPills() {
+        const container = document.getElementById('level-pills');
+        container.innerHTML = '';
+        LEVELS.forEach((lvl, i) => {
+            const pill = document.createElement('button');
+            let cls = 'level-pill px-3 py-1.5 rounded-full text-xs font-bold border border-transparent ';
+            if (i === currentLevel) cls += 'current';
+            else if (i < unlockedLevel) cls += 'completed';
+            else if (i <= unlockedLevel) cls += 'bg-white border-slate-200 text-slate-600';
+            else cls += 'locked bg-slate-100 text-slate-400';
+            pill.className = cls;
+            pill.textContent = `${i + 1}`;
+            pill.title = lvl.title;
+            if (i <= unlockedLevel) {
+                pill.onclick = () => { 
+                    currentLevel = i;
+                    commands = [];
+                    loadLevel(i);
+                    updateCommandUI();
+                    renderLevelPills();
+                };
+            }
+            container.appendChild(pill);
+        });
+    }
+
+    function loadLevel(idx) {
+        const lvl = LEVELS[idx];
+        document.getElementById('task-text').textContent = lvl.task;
+
+        // Clear all cells
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                cell.innerHTML = '';
+                cell.className = 'grid-cell bg-white rounded-xl border border-slate-100 flex items-center justify-center text-2xl';
+            }
+        }
+
+        // Target
+        const tCell = document.getElementById(`cell-${lvl.target[0]}-${lvl.target[1]}`);
+        tCell.innerHTML = '<span class="sparkle">💎</span>';
+        tCell.classList.add('bg-amber-50', 'border-amber-200');
+
+        // Obstacles
+        lvl.obstacles.forEach(([r, c]) => {
+            const oCell = document.getElementById(`cell-${r}-${c}`);
+            oCell.innerHTML = '<span class="obstacle-emoji">🚧</span>';
+            oCell.classList.add('obstacle-cell', 'bg-red-50', 'border-red-100');
+        });
+
+        // Snail
+        snail = { r: lvl.start[0], c: lvl.start[1], dir: lvl.startDir };
+        renderSnail();
+    }
+
+    function renderSnail() {
+        // Remove old
+        const old = document.getElementById('snail-sprite');
+        if (old) old.remove();
+        const oldArrow = document.getElementById('dir-arrow');
+        if (oldArrow) oldArrow.remove();
+
+        const cell = document.getElementById(`cell-${snail.r}-${snail.c}`);
+        if (!cell) return;
+
+        // Snail emoji
+        const sprite = document.createElement('div');
+        sprite.id = 'snail-sprite';
+        sprite.className = 'snail-sprite';
+        sprite.textContent = '🐌';
+        cell.appendChild(sprite);
+
+        // Direction arrow
+        const arrow = document.createElement('div');
+        arrow.id = 'dir-arrow';
+        arrow.className = 'dir-arrow';
+        arrow.textContent = DIRS[snail.dir].label;
+        cell.appendChild(arrow);
+    }
+
+    // ── COMMANDS ─────────────────────────────────────────
+    function addCommand(type) {
+        if (isRunning) return;
+        commands.push(type);
+        updateCommandUI();
+    }
+
+    function removeCommand(idx) {
+        if (isRunning) return;
+        commands.splice(idx, 1);
+        updateCommandUI();
+    }
+
+    function clearCommands() {
+        if (isRunning) return;
+        commands = [];
+        updateCommandUI();
+        loadLevel(currentLevel);
+    }
+
+    function updateCommandUI() {
+        const queue = document.getElementById('command-queue');
+        const hint = document.getElementById('empty-hint');
+        const counter = document.getElementById('cmd-counter');
+
+        // Remove all chips
+        queue.querySelectorAll('.cmd-chip').forEach(c => c.remove());
+
+        if (commands.length === 0) {
+            hint.style.display = 'block';
+            counter.textContent = '';
+            return;
+        }
+        hint.style.display = 'none';
+        counter.textContent = `(${commands.length} Befehle)`;
+
+        const icons = { forward: '⬆️', left: '↩️', right: '↪️' };
+
+        commands.forEach((cmd, idx) => {
+            const chip = document.createElement('div');
+            chip.className = 'cmd-chip w-11 h-11 bg-white rounded-xl border-2 border-slate-200 flex items-center justify-center text-lg pop-in cursor-pointer';
+            chip.id = `cmd-${idx}`;
+            chip.innerHTML = `
+                <span class="cmd-index">${idx + 1}</span>
+                ${icons[cmd]}
+                <span class="remove-btn" onclick="event.stopPropagation(); removeCommand(${idx})">×</span>
+            `;
+            queue.appendChild(chip);
+        });
+    }
+
+    // ── EXECUTION ───────────────────────────────────────
+    async function runProgram() {
+        if (isRunning || commands.length === 0) return;
+        isRunning = true;
+        
+        // Reset grid visuals but keep layout
+        loadLevel(currentLevel);
+
+        const playBtn = document.getElementById('play-btn');
+        playBtn.classList.add('opacity-50');
+        playBtn.style.pointerEvents = 'none';
+
+        for (let i = 0; i < commands.length; i++) {
+            // Highlight current command
+            highlightCmd(i, 'active');
+
+            const ok = executeStep(commands[i]);
+
+            if (!ok) {
+                highlightCmd(i, 'error');
+                await sleep(300);
+                showModal(false, i);
+                endRun();
+                return;
+            }
+
+            renderSnail();
+            
+            // Mark trail
+            if (commands[i] === 'forward') {
+                // The cell snail just left was already handled, mark current
+            }
+
+            await sleep(500);
+            highlightCmd(i, 'done');
+        }
+
+        // Check if on target
+        const lvl = LEVELS[currentLevel];
+        if (snail.r === lvl.target[0] && snail.c === lvl.target[1]) {
+            showModal(true);
+        } else {
+            showModal(false, -1); // didn't reach target
+        }
+        endRun();
+    }
+
+    function executeStep(type) {
+        if (type === 'left') {
+            snail.dir = (snail.dir + 3) % 4; // -1 mod 4
+            return true;
+        }
+        if (type === 'right') {
+            snail.dir = (snail.dir + 1) % 4;
+            return true;
+        }
+        if (type === 'forward') {
+            // Mark current cell as visited before moving
+            const curCell = document.getElementById(`cell-${snail.r}-${snail.c}`);
+            if (curCell) curCell.classList.add('visited');
+
+            const d = DIRS[snail.dir];
+            const nr = snail.r + d.dr;
+            const nc = snail.c + d.dc;
+
+            // Bounds check
+            if (nr < 0 || nr > 4 || nc < 0 || nc > 4) return false;
+
+            // Obstacle check
+            const lvl = LEVELS[currentLevel];
+            if (lvl.obstacles.some(([or, oc]) => or === nr && oc === nc)) return false;
+
+            snail.r = nr;
+            snail.c = nc;
+            return true;
+        }
+        return false;
+    }
+
+    function highlightCmd(idx, state) {
+        const chip = document.getElementById(`cmd-${idx}`);
+        if (!chip) return;
+        chip.classList.remove('active-cmd', 'error-cmd');
+        if (state === 'active') chip.classList.add('active-cmd');
+        if (state === 'error') chip.classList.add('error-cmd');
+    }
+
+    function endRun() {
+        isRunning = false;
+        const playBtn = document.getElementById('play-btn');
+        playBtn.classList.remove('opacity-50');
+        playBtn.style.pointerEvents = '';
+    }
+
+    // ── MODAL ───────────────────────────────────────────
+    function showModal(success, errorIdx = -1) {
+        const modal = document.getElementById('modal');
+        const icon = document.getElementById('modal-icon');
+        const title = document.getElementById('modal-title');
+        const text = document.getElementById('modal-text');
+        const hint = document.getElementById('modal-hint');
+        const btn = document.getElementById('modal-btn');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        requestAnimationFrame(() => modal.classList.add('show'));
+
+        if (success) {
+            // Confetti!
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 }, colors: ['#7c3aed', '#a78bfa', '#c4b5fd', '#fbbf24'] });
+
+            const lvl = LEVELS[currentLevel];
+            icon.textContent = '🎉';
+            title.textContent = 'Geschafft!';
+            text.textContent = `Du hast ${commands.length} Befehle gebraucht.`;
+            
+            if (commands.length <= lvl.optimal) {
+                hint.textContent = '⭐ Perfekt! Das war der kürzeste Weg!';
+            } else {
+                hint.textContent = `💡 Tipp: Es geht auch in ${lvl.optimal} Befehlen. Probier's nochmal!`;
+            }
+
+            // Unlock next
+            if (currentLevel + 1 > unlockedLevel && currentLevel < LEVELS.length - 1) {
+                unlockedLevel = currentLevel + 1;
+            }
+
+            if (currentLevel < LEVELS.length - 1) {
+                btn.textContent = '➡️ Nächstes Level';
+                btn.onclick = () => {
+                    closeModal();
+                    currentLevel++;
+                    commands = [];
+                    loadLevel(currentLevel);
+                    updateCommandUI();
+                    renderLevelPills();
+                };
+            } else {
+                btn.textContent = '🏆 Alle Level geschafft!';
+                btn.onclick = () => {
+                    closeModal();
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+                };
+            }
+        } else {
+            icon.textContent = '🤔';
+            if (errorIdx >= 0) {
+                title.textContent = 'Hier geht\'s nicht weiter!';
+                text.textContent = `Befehl Nr. ${errorIdx + 1} funktioniert nicht.`;
+                hint.textContent = 'Tipp: Schau dir an, wohin die Schnecke schaut und ändere deinen Plan.';
+            } else {
+                title.textContent = 'Noch nicht am Ziel';
+                text.textContent = 'Die Schnecke hat den Rubin nicht erreicht.';
+                hint.textContent = 'Tipp: Du brauchst noch mehr Befehle!';
+            }
+            btn.textContent = '🔄 Nochmal versuchen';
+            btn.onclick = () => {
+                closeModal();
+                loadLevel(currentLevel);
+            };
+        }
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('modal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // ── HELPERS ──────────────────────────────────────────
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── START ────────────────────────────────────────────
+    init();
+    </script>
+</body>
+</html>
