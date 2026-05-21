@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Die Geschichte der Roboter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Outfit', system-ui, sans-serif; background: #f8fafc; color: #1f2937; min-height: 100vh; display: flex; flex-direction: column; }
+
+.app { max-width: 1100px; margin: 0 auto; padding: 16px; width: 100%; flex: 1; display: flex; flex-direction: column; }
+
+.header { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #fff; border-radius: 18px; padding: 16px 24px; box-shadow: 0 4px 16px rgba(124,58,237,0.18); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+.header .progress { display: flex; gap: 4px; }
+.dot { width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.35); cursor: pointer; transition: all 0.2s; }
+.dot.active { background: #fff; transform: scale(1.3); }
+.dot:hover { background: rgba(255,255,255,0.6); }
+
+.stage { background: #fff; border-radius: 20px; border: 1px solid #e5e7eb; box-shadow: 0 6px 20px rgba(0,0,0,0.04); padding: 22px; flex: 1; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+
+.slide-img { width: 100%; max-height: 60vh; object-fit: contain; border-radius: 12px; background: #faf7f0; }
+
+.speech { background: #faf5ff; border-left: 6px solid #7c3aed; border-radius: 12px; padding: 14px 18px; font-size: 16px; line-height: 1.55; color: #1f2937; display: flex; align-items: flex-start; gap: 12px; }
+.speech .icon { font-size: 24px; flex-shrink: 0; }
+.speech .text { flex: 1; }
+
+.controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; }
+.btn { background: #fff; border: 2px solid #c4b5fd; color: #5b21b6; font-family: inherit; font-size: 15px; font-weight: 700; padding: 10px 20px; border-radius: 14px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { background: #ede9fe; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(124,58,237,0.15); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn.primary { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+.btn.primary:hover { background: #6d28d9; border-color: #6d28d9; }
+.btn.audio { background: #fef3c7; border-color: #fbbf24; color: #92400e; }
+.btn.audio:hover { background: #fde68a; }
+.btn.audio.playing { background: #fbbf24; color: #fff; }
+
+.counter { font-size: 14px; color: #6b7280; font-weight: 600; }
+
+.kbd-hint { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 8px; }
+
+@media (max-width: 640px) {
+  .header h1 { font-size: 16px; }
+  .slide-img { max-height: 45vh; }
+  .speech { font-size: 14px; padding: 12px 14px; }
+  .btn { padding: 9px 14px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>📜 Die Geschichte der Roboter</h1>
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <div class="stage">
+    <img id="slideImg" class="slide-img" src="slides/slide-1.jpg" alt="">
+    <div class="speech">
+      <div class="icon">💬</div>
+      <div class="text" id="speechText"></div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prevBtn" onclick="prev()">← Zurück</button>
+      <button class="btn audio" id="audioBtn" onclick="toggleAudio()" style="display:none;">🔊 Vorlesen</button>
+      <span class="counter" id="counter">1 / 8</span>
+      <button class="btn primary" id="nextBtn" onclick="next()">Weiter →</button>
+    </div>
+    <div class="kbd-hint">Tipp: Mit den Pfeiltasten ← → kannst du auch blättern.</div>
+  </div>
+</div>
+
+<audio id="player"></audio>
+
+<script>
+const slides = [
+  {
+    img: 'slides/slide-1.jpg',
+    speech: 'Stell dir vor, du baust dir eine eigene Maschine. Wie würdest du ihr sagen, was sie tun soll? Heute machen wir eine Reise. Wir gehen von den ersten Zahnrädern bis zu Robotern, die selbst rechnen können. Bist du bereit?'
+  },
+  {
+    img: 'slides/slide-2.jpg',
+    speech: 'Ein Roboter weiß nicht von allein, was er tun soll. Er braucht einen Plan. Genau wie ein Rezept beim Backen. Mehl plus Wasser ergibt Teig. Bei der Maschine heißt dieser Plan Algorithmus. Eingabe, Regel, Ausgabe. Maschinen wissen nichts von allein. Wir müssen es ihnen beibringen.'
+  },
+  {
+    img: 'slides/slide-3.jpg',
+    speech: 'Probier etwas Lustiges. Stell dir vor, du steuerst einen Menschen mit verbundenen Augen. Sagst du nur "Putz die Zähne", versteht er gar nichts. Du musst jeden Schritt genau erklären. Hebe die Bürste zehn Zentimeter hoch. Bewege die Hand fünfzehn Zentimeter nach links. Schließe die Finger. Genauso denkt ein Roboter.'
+  },
+  {
+    img: 'slides/slide-4.jpg',
+    speech: 'Vor über zweihundert Jahren bauten Uhrmacher Maschinen aus Federn und Zahnrädern. Eine berühmte Ente aus Kupfer konnte sogar Wasser trinken und Körner picken. Sie sah fast lebendig aus. Aber sie dachte nicht. Sie folgte einfach den Zahnrädern in ihrem Bauch.'
+  },
+  {
+    img: 'slides/slide-5.jpg',
+    speech: 'Vor etwa siebzig Jahren kam ein riesiger Metallarm in die Fabrik. Sein Name war Unimate. Er hob glühend heiße Metallteile aus der Form und stapelte sie. Tag und Nacht ohne Pause. Er fühlte keine Hitze und wurde nie müde. Bis heute bauen solche Arme unsere Autos.'
+  },
+  {
+    img: 'slides/slide-6.jpg',
+    speech: 'Heute brauchen wir keine Zahnräder mehr. Wir nutzen drei coole Werkzeuge. Erst legen wir Pfeile aus Papier auf den Boden und laufen die Strecke selbst ab. Dann liest eine kleine Schnecke Farben und fährt los. Und am Tablet bauen wir bunte Blöcke wie Puzzleteile zusammen. So denkt eine Maschine heute.'
+  },
+  {
+    img: 'slides/slide-7.jpg',
+    speech: 'Jedes gute Programm braucht drei Bausteine. Erstens ein Start-Signal, zum Beispiel eine grüne Flagge. Zweitens einen Akteur, also den Roboter oder die Figur. Und drittens eine logische Aktion. Beispiel: Wenn ich die Flagge klicke, bewegt sich der Roboter zwei Schritte nach vorn. Mehr nicht, weniger nicht.'
+  },
+  {
+    img: 'slides/slide-8.jpg',
+    speech: 'Ob der Roboter den Boden saugt oder als Rover auf dem Mars fährt: Eines bleibt immer gleich. Jede Maschine ist nur so klug wie der Mensch, der ihren Plan geschrieben hat. Und das wirst du jetzt lernen. Du bist nicht mehr nur Zuschauer. Du wirst zum Gestalter.'
+  }
+];
+
+let current = 0;
+const player = document.getElementById('player');
+let audioAvailable = false;
+
+function checkAudio() {
+  // Optional: check ob audio/slide-N.mp3 existiert. Wenn ja, Button anzeigen.
+  fetch(`audio/slide-${current+1}.mp3`, {method: 'HEAD'}).then(r => {
+    if (r.ok) { document.getElementById('audioBtn').style.display = 'inline-flex'; audioAvailable = true; }
+    else { document.getElementById('audioBtn').style.display = 'none'; audioAvailable = false; }
+  }).catch(() => { document.getElementById('audioBtn').style.display = 'none'; });
+}
+
+function render() {
+  const s = slides[current];
+  const img = document.getElementById('slideImg');
+  img.src = s.img;
+  img.alt = 'Slide ' + (current+1);
+  document.getElementById('speechText').textContent = s.speech;
+  document.getElementById('counter').textContent = (current+1) + ' / ' + slides.length;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === slides.length - 1;
+  // Progress dots
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < slides.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === current ? ' active' : '');
+    dot.title = 'Folie ' + (i+1);
+    dot.onclick = () => { current = i; stopAudio(); render(); };
+    prog.appendChild(dot);
+  }
+  // Audio stop on slide change
+  stopAudio();
+  checkAudio();
+}
+
+function next() { if (current < slides.length - 1) { current++; render(); } }
+function prev() { if (current > 0) { current--; render(); } }
+
+function toggleAudio() {
+  const btn = document.getElementById('audioBtn');
+  if (player.paused) {
+    player.src = `audio/slide-${current+1}.mp3`;
+    player.play().then(() => {
+      btn.classList.add('playing');
+      btn.innerHTML = '⏸️ Pause';
+    }).catch(e => console.log('Audio fail:', e));
+  } else {
+    player.pause();
+    btn.classList.remove('playing');
+    btn.innerHTML = '🔊 Vorlesen';
+  }
+}
+
+function stopAudio() {
+  player.pause();
+  player.currentTime = 0;
+  const btn = document.getElementById('audioBtn');
+  btn.classList.remove('playing');
+  btn.innerHTML = '🔊 Vorlesen';
+}
+
+player.addEventListener('ended', () => {
+  const btn = document.getElementById('audioBtn');
+  btn.classList.remove('playing');
+  btn.innerHTML = '🔊 Vorlesen';
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+});
+
+render();
+</script>
+
+</body>
+</html>
